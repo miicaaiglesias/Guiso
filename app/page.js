@@ -48,6 +48,14 @@ export default function Home() {
     setCart(prev => prev.includes(ing) ? prev.filter(i => i !== ing) : [...prev, ing]);
   }
 
+  function searchByIngredient(ing) {
+    setSelected(null);
+    setSearch(ing);
+    setActiveCat('Todas');
+    setActiveMethod('Todos');
+    setActiveTab('explorar');
+  }
+
   const categories = ['Todas', ...[...new Set(recipes.map(r => r.categoria))].filter(Boolean).sort()];
   const methods = ['Todos', ...[...new Set(recipes.map(r => r.metodo).filter(Boolean))].sort()];
 
@@ -58,11 +66,7 @@ export default function Home() {
     return catOk && methodOk && qOk;
   });
 
-  const favRecipes = recipes.filter(r => favorites.includes(r.nombre));
-
-  const allIngredients = selected
-    ? (selected.ingredientes || '').split(',').map(i => i.trim()).filter(Boolean)
-    : [];
+  const favRecipes = recipes.filter((r, i, arr) => favorites.includes(r.nombre) && arr.findIndex(x => x.nombre === r.nombre) === i);
 
   async function callAI(messages, system) {
     const res = await fetch('/api/chat', {
@@ -117,7 +121,6 @@ export default function Home() {
     const isFav = favorites.includes(selected.nombre);
     return (
       <div style={{ fontFamily: font, maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: '#fff' }}>
-        {/* Hero */}
         <div style={{ background: red, padding: '20px 20px 40px', position: 'relative' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <button onClick={() => setSelected(null)} style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
@@ -134,23 +137,27 @@ export default function Home() {
         </div>
 
         <div style={{ padding: '0 20px 100px', marginTop: -16 }}>
-          {/* Ingredients */}
           {ings.length > 0 && (
             <div style={{ background: '#fff', borderRadius: 20, padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', marginBottom: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
                 <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Ingredientes</h2>
-                <button onClick={() => setActiveTab('lista')} style={{ fontSize: 12, color: red, background: redLight, border: 'none', padding: '4px 10px', borderRadius: 999, cursor: 'pointer', fontFamily: font }}>+ Lista de compras</button>
+                <button onClick={() => {
+                  const allIngs = (selected.ingredientes || '').split(',').map(i => i.trim()).filter(Boolean);
+                  setCart(prev => { const newCart = [...prev]; allIngs.forEach(ing => { if (!newCart.includes(ing)) newCart.push(ing); }); return newCart; });
+                  setSelected(null);
+                  setActiveTab('lista');
+                }} style={{ fontSize: 12, color: red, background: redLight, border: 'none', padding: '4px 10px', borderRadius: 999, cursor: 'pointer', fontFamily: font }}>+ Lista de compras</button>
               </div>
               {ings.map((ing, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: i < ings.length - 1 ? '1px solid #f5f5f5' : 'none' }}>
+                <div key={i} onClick={() => searchByIngredient(ing)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: i < ings.length - 1 ? '1px solid #f5f5f5' : 'none', cursor: 'pointer' }}>
                   <div style={{ width: 8, height: 8, borderRadius: '50%', background: red, flexShrink: 0 }} />
-                  <span style={{ fontSize: 14, color: '#333' }}>{ing}</span>
+                  <span style={{ fontSize: 14, color: red, fontWeight: 600, textDecoration: 'underline' }}>{ing}</span>
+                  <span style={{ fontSize: 11, color: '#bbb', marginLeft: 'auto' }}>ver recetas →</span>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Preparation */}
           {selected.preparacion && (
             <div style={{ background: '#fff', borderRadius: 20, padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
               <h2 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 14px' }}>Preparación</h2>
@@ -165,7 +172,6 @@ export default function Home() {
   return (
     <div style={{ fontFamily: font, maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: '#f8f8f8', display: 'flex', flexDirection: 'column' }}>
 
-      {/* Header */}
       <div style={{ background: '#fff', padding: '16px 20px 0', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -187,7 +193,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Bottom tabs */}
         <div style={{ display: 'flex', gap: 4 }}>
           {[['explorar','🔍','Explorar'],['ingredientes','🥬','Ingredientes'],['chef','🤖','Chef IA']].map(([id, icon, label]) => (
             <button key={id} onClick={() => setActiveTab(id)} style={{ flex: 1, padding: '8px 4px', background: 'none', border: 'none', borderBottom: activeTab === id ? `3px solid ${red}` : '3px solid transparent', color: activeTab === id ? red : '#999', fontSize: 11, fontWeight: activeTab === id ? 700 : 400, cursor: 'pointer', fontFamily: font }}>
@@ -198,23 +203,19 @@ export default function Home() {
         </div>
       </div>
 
-      {/* EXPLORAR */}
       {activeTab === 'explorar' && (
         <div style={{ flex: 1, padding: '16px 20px', overflowY: 'auto' }}>
-          {/* Search */}
           <div style={{ position: 'relative', marginBottom: 14 }}>
             <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 16 }}>🔍</span>
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar receta o ingrediente..." style={{ width: '100%', padding: '12px 12px 12px 42px', border: 'none', borderRadius: 14, background: '#fff', color: '#1a1a1a', fontSize: 14, fontFamily: font, boxShadow: '0 2px 10px rgba(0,0,0,0.06)', boxSizing: 'border-box', outline: 'none' }} />
           </div>
 
-          {/* Category filters */}
           <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8, marginBottom: 10 }}>
             {categories.map(c => (
               <button key={c} onClick={() => setActiveCat(c)} style={{ padding: '6px 14px', borderRadius: 999, border: 'none', background: activeCat === c ? red : '#fff', color: activeCat === c ? '#fff' : '#555', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: font, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>{c}</button>
             ))}
           </div>
 
-          {/* Method filters */}
           {methods.length > 1 && (
             <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8, marginBottom: 14 }}>
               {methods.map(m => (
@@ -227,7 +228,6 @@ export default function Home() {
 
           <div style={{ fontSize: 12, color: '#999', marginBottom: 12, fontWeight: 500 }}>{filtered.length} recetas</div>
 
-          {/* Recipe cards */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {filtered.map((r, i) => (
               <div key={i} onClick={() => setSelected(r)} style={{ background: '#fff', borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
@@ -249,10 +249,9 @@ export default function Home() {
         </div>
       )}
 
-      {/* FAVORITOS */}
       {activeTab === 'favoritos' && (
         <div style={{ flex: 1, padding: '16px 20px', overflowY: 'auto' }}>
-          <h2 style={{ fontSize: 18, fontWeight: 800, margin: '0 0 4px' }}>Mis favoritos ❤️</h2>
+          <h2 style={{ fontSize: 18, fontWeight: 800, margin: '0 0 4px', color: '#1a1a1a' }}>Mis favoritos ❤️</h2>
           <p style={{ fontSize: 13, color: '#999', margin: '0 0 16px' }}>{favRecipes.length} recetas guardadas</p>
           {favRecipes.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
@@ -276,11 +275,10 @@ export default function Home() {
         </div>
       )}
 
-      {/* LISTA DE COMPRAS */}
       {activeTab === 'lista' && (
         <div style={{ flex: 1, padding: '16px 20px', overflowY: 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Lista de compras 🛒</h2>
+            <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: '#1a1a1a' }}>Lista de compras 🛒</h2>
             {cart.length > 0 && <button onClick={() => setCart([])} style={{ fontSize: 12, color: '#999', background: 'none', border: 'none', cursor: 'pointer', fontFamily: font }}>Limpiar</button>}
           </div>
           <p style={{ fontSize: 13, color: '#999', margin: '0 0 16px' }}>Agregá ingredientes desde cualquier receta</p>
@@ -292,12 +290,12 @@ export default function Home() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {cart.map((ing, i) => (
-                <div key={i} onClick={() => toggleCart(ing)} style={{ background: '#fff', borderRadius: 14, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                <div key={i} style={{ background: '#fff', borderRadius: 14, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
                   <div style={{ width: 22, height: 22, borderRadius: '50%', border: `2px solid ${red}`, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <div style={{ width: 12, height: 12, borderRadius: '50%', background: red }} />
                   </div>
                   <span style={{ fontSize: 14, color: '#1a1a1a' }}>{ing}</span>
-                  <button onClick={e => { e.stopPropagation(); toggleCart(ing); }} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#ccc', fontSize: 16, cursor: 'pointer' }}>×</button>
+                  <button onClick={() => toggleCart(ing)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#ccc', fontSize: 16, cursor: 'pointer' }}>×</button>
                 </div>
               ))}
             </div>
@@ -305,10 +303,9 @@ export default function Home() {
         </div>
       )}
 
-      {/* MIS INGREDIENTES */}
       {activeTab === 'ingredientes' && (
         <div style={{ flex: 1, padding: '16px 20px', overflowY: 'auto' }}>
-          <h2 style={{ fontSize: 18, fontWeight: 800, margin: '0 0 4px', color: '#1a1a1a' }}>¿Qué tenés en casa? 🍴</h2>
+          <h2 style={{ fontSize: 18, fontWeight: 800, margin: '0 0 4px', color: '#1a1a1a' }}>¿Qué tenés en casa? 🥬</h2>
           <p style={{ fontSize: 13, color: '#999', margin: '0 0 16px', lineHeight: 1.6 }}>Escribí los ingredientes y te sugiero qué cocinar con tu recetario.</p>
           <textarea value={ingInput} onChange={e => setIngInput(e.target.value)} placeholder="ej: pollo, zucchini, huevo, cebolla..." style={{ width: '100%', minHeight: 100, padding: '14px', border: 'none', borderRadius: 16, background: '#fff', color: '#1a1a1a', fontSize: 14, fontFamily: font, resize: 'vertical', boxSizing: 'border-box', outline: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }} />
           <button onClick={getRecommendation} disabled={aiLoading || !ingInput.trim()} style={{ width: '100%', marginTop: 12, padding: '14px', background: aiLoading || !ingInput.trim() ? '#f0c4c0' : red, border: 'none', borderRadius: 14, color: '#fff', fontSize: 15, fontWeight: 700, cursor: aiLoading ? 'not-allowed' : 'pointer', fontFamily: font }}>
@@ -322,7 +319,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* CHEF IA */}
       {activeTab === 'chef' && (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
