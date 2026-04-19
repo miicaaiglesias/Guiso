@@ -21,11 +21,12 @@ export async function GET() {
     const recipes = rows.slice(1)
       .filter(row => row[0] && row[1])
       .map(row => ({
-        categoria: row[0]?.trim() || '',
-        nombre: row[1]?.trim() || '',
-        ingredientes: row[2]?.trim() || '',
-        preparacion: row[3]?.trim() || '',
-      }));
+  categoria: row[0]?.trim() || '',
+  nombre: row[1]?.trim() || '',
+  ingredientes: row[2]?.trim() || '',
+  preparacion: row[3]?.trim() || '',
+  metodo: row[4]?.trim() || '',
+}));
 
     return NextResponse.json({ recipes });
   } catch (error) {
