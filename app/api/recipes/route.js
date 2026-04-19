@@ -14,7 +14,7 @@ export async function GET() {
     const sheets = google.sheets({ version: 'v4', auth });
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.SHEET_ID,
-      range: 'A:D',
+      range: "'Es la que va'!A:H",
     });
 
     const rows = response.data.values || [];
@@ -26,6 +26,9 @@ export async function GET() {
   ingredientes: row[2]?.trim() || '',
   preparacion: row[3]?.trim() || '',
   metodo: row[4]?.trim() || '',
+  tiempo: row[5]?.trim() || '',
+  dificultad: row[6]?.trim() || '',
+  tip: row[7]?.trim() || '',
 }));
 
     return NextResponse.json({ recipes });
