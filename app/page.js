@@ -18,6 +18,7 @@ export default function Home() {
   const [aiLoading, setAiLoading] = useState(false);
   const [chatHistory, setChatHistory] = useState([{ role: 'bot', text: '¡Hola! 👋 Soy el chef de Guiso. Conozco todas tus recetas. ¿Qué necesitás?' }]);
   const [chatInput, setChatInput] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
   const chatEndRef = useRef(null);
 
   useEffect(() => {
@@ -113,7 +114,6 @@ export default function Home() {
   const font = "'Poppins', sans-serif";
   const red = '#C1170C';
   const redLight = '#FFF0EF';
-
   const methodIcons = { 'Horno': '🔥', 'Airfryer': '💨', 'Plancha': '♨️', 'Hervido': '♨️', 'Salteado': '🥘', 'Sin cocción': '🥗' };
 
   if (selected) {
@@ -121,7 +121,7 @@ export default function Home() {
     const isFav = favorites.includes(selected.nombre);
     return (
       <div style={{ fontFamily: font, maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: '#fff' }}>
-        <div style={{ background: red, padding: '20px 20px 40px', position: 'relative' }}>
+        <div style={{ background: red, padding: '20px 20px 40px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <button onClick={() => setSelected(null)} style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
             <button onClick={() => toggleFav(selected.nombre)} style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: 'none', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -135,7 +135,6 @@ export default function Home() {
             {selected.metodo && <span style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', fontSize: 12, padding: '3px 12px', borderRadius: 999, marginLeft: 6 }}>{methodIcons[selected.metodo] || '🍳'} {selected.metodo}</span>}
           </div>
         </div>
-
         <div style={{ padding: '0 20px 100px', marginTop: -16 }}>
           {ings.length > 0 && (
             <div style={{ background: '#fff', borderRadius: 20, padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', marginBottom: 16 }}>
@@ -157,7 +156,6 @@ export default function Home() {
               ))}
             </div>
           )}
-
           {selected.preparacion && (
             <div style={{ background: '#fff', borderRadius: 20, padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
               <h2 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 14px' }}>Preparación</h2>
@@ -172,30 +170,30 @@ export default function Home() {
   return (
     <div style={{ fontFamily: font, maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: '#f8f8f8', display: 'flex', flexDirection: 'column' }}>
 
-      <div style={{ background: '#fff', padding: '16px 20px 0', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 12, background: red, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🍲</div>
-            <div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: '#1a1a1a', lineHeight: 1 }}>Guiso</div>
-              <div style={{ fontSize: 11, color: '#999' }}>{loading ? 'Cargando...' : `${recipes.length} recetas`}</div>
+      {/* HEADER */}
+      <div style={{ background: '#fff', padding: '16px 20px 0', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', position: 'relative' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4, position: 'relative' }}>
+          <img src="/logo.png" alt="Guiso" onClick={() => { setActiveTab('explorar'); setSearch(''); setActiveCat('Todas'); setActiveMethod('Todos'); setMenuOpen(false); }} style={{ height: 120, width: 'auto', cursor: 'pointer' }} />
+          <button onClick={() => setMenuOpen(prev => !prev)} style={{ position: 'absolute', right: 0, background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#333', padding: '4px 8px' }}>☰</button>
+        </div>
+        <div style={{ textAlign: 'center', fontSize: 11, color: '#999', marginBottom: 10 }}>{loading ? 'Cargando...' : `${recipes.length} recetas`}</div>
+
+        {menuOpen && (
+          <div style={{ position: 'absolute', top: 95, right: 20, background: '#fff', borderRadius: 14, boxShadow: '0 8px 30px rgba(0,0,0,0.15)', zIndex: 100, minWidth: 200, overflow: 'hidden' }}>
+            <div onClick={() => { setActiveTab('favoritos'); setMenuOpen(false); }} style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14, color: '#1a1a1a', borderBottom: '1px solid #f5f5f5' }}>
+              ❤️ <span>Favoritos</span>
+              {favorites.length > 0 && <span style={{ marginLeft: 'auto', background: red, color: '#fff', borderRadius: 999, fontSize: 11, fontWeight: 700, padding: '2px 8px' }}>{favorites.length}</span>}
+            </div>
+            <div onClick={() => { setActiveTab('lista'); setMenuOpen(false); }} style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14, color: '#1a1a1a' }}>
+              🛒 <span>Lista de compras</span>
+              {cart.length > 0 && <span style={{ marginLeft: 'auto', background: red, color: '#fff', borderRadius: 999, fontSize: 11, fontWeight: 700, padding: '2px 8px' }}>{cart.length}</span>}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => setActiveTab('favoritos')} style={{ width: 36, height: 36, borderRadius: 10, background: activeTab === 'favoritos' ? redLight : '#f5f5f5', border: 'none', fontSize: 16, cursor: 'pointer', position: 'relative' }}>
-              ❤️
-              {favorites.length > 0 && <span style={{ position: 'absolute', top: -4, right: -4, width: 16, height: 16, borderRadius: '50%', background: red, color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: font }}>{favorites.length}</span>}
-            </button>
-            <button onClick={() => setActiveTab('lista')} style={{ width: 36, height: 36, borderRadius: 10, background: activeTab === 'lista' ? redLight : '#f5f5f5', border: 'none', fontSize: 16, cursor: 'pointer', position: 'relative' }}>
-              🛒
-              {cart.length > 0 && <span style={{ position: 'absolute', top: -4, right: -4, width: 16, height: 16, borderRadius: '50%', background: red, color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: font }}>{cart.length}</span>}
-            </button>
-          </div>
-        </div>
+        )}
 
         <div style={{ display: 'flex', gap: 4 }}>
           {[['explorar','🔍','Explorar'],['ingredientes','🥬','Ingredientes'],['chef','🤖','Chef IA']].map(([id, icon, label]) => (
-            <button key={id} onClick={() => setActiveTab(id)} style={{ flex: 1, padding: '8px 4px', background: 'none', border: 'none', borderBottom: activeTab === id ? `3px solid ${red}` : '3px solid transparent', color: activeTab === id ? red : '#999', fontSize: 11, fontWeight: activeTab === id ? 700 : 400, cursor: 'pointer', fontFamily: font }}>
+            <button key={id} onClick={() => { setActiveTab(id); setMenuOpen(false); }} style={{ flex: 1, padding: '8px 4px', background: 'none', border: 'none', borderBottom: activeTab === id ? `3px solid ${red}` : '3px solid transparent', color: activeTab === id ? red : '#999', fontSize: 11, fontWeight: activeTab === id ? 700 : 400, cursor: 'pointer', fontFamily: font }}>
               <div style={{ fontSize: 16, marginBottom: 2 }}>{icon}</div>
               {label}
             </button>
@@ -209,13 +207,11 @@ export default function Home() {
             <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 16 }}>🔍</span>
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar receta o ingrediente..." style={{ width: '100%', padding: '12px 12px 12px 42px', border: 'none', borderRadius: 14, background: '#fff', color: '#1a1a1a', fontSize: 14, fontFamily: font, boxShadow: '0 2px 10px rgba(0,0,0,0.06)', boxSizing: 'border-box', outline: 'none' }} />
           </div>
-
           <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8, marginBottom: 10 }}>
             {categories.map(c => (
               <button key={c} onClick={() => setActiveCat(c)} style={{ padding: '6px 14px', borderRadius: 999, border: 'none', background: activeCat === c ? red : '#fff', color: activeCat === c ? '#fff' : '#555', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: font, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>{c}</button>
             ))}
           </div>
-
           {methods.length > 1 && (
             <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8, marginBottom: 14 }}>
               {methods.map(m => (
@@ -225,9 +221,7 @@ export default function Home() {
               ))}
             </div>
           )}
-
           <div style={{ fontSize: 12, color: '#999', marginBottom: 12, fontWeight: 500 }}>{filtered.length} recetas</div>
-
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {filtered.map((r, i) => (
               <div key={i} onClick={() => setSelected(r)} style={{ background: '#fff', borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
