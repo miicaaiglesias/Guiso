@@ -218,7 +218,7 @@ export default function Home() {
           {ings.length > 0 && (
             <div style={{ background: '#fff', borderRadius: 20, padding: '16px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', marginBottom: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <h2 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: '#1a1a1a' }}>🧾 Ingredientes</h2>
+                <h2 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>🧾 Ingredientes</h2>
                 <button onClick={() => {
                   const allIngs = (selected.ingredientes || '').split(',').map(i => i.trim()).filter(Boolean);
                   setCart(prev => { const newCart = [...prev]; allIngs.forEach(ing => { if (!newCart.includes(ing)) newCart.push(ing); }); return newCart; });
@@ -238,7 +238,7 @@ export default function Home() {
           {/* Preparación */}
           {selected.preparacion && (
             <div style={{ background: '#fff', borderRadius: 20, padding: '16px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', marginBottom: 12 }}>
-              <h2 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 12px', color: '#1a1a1a' }}>👩‍🍳 Preparación</h2>
+              <h2 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 12px' }}>👩‍🍳 Preparación</h2>
               {steps.length > 1 ? steps.map((step, i) => (
                 <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 10 }}>
                   <span style={{ minWidth: 24, height: 24, borderRadius: '50%', background: red, color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{i + 1}</span>

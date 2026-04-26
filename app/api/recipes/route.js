@@ -1,38 +1,51 @@
-import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
+
+export const revalidate = 0;
+
+function parseCSV(text) {
+  const lines = text.split('\n');
+  const results = [];
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    const fields = [];
+    let current = '';
+    let inQuotes = false;
+    for (let c = 0; c < line.length; c++) {
+      if (line[c] === '"') { inQuotes = !inQuotes; }
+      else if (line[c] === ',' && !inQuotes) { fields.push(current.trim()); current = ''; }
+      else { current += line[c]; }
+    }
+    fields.push(current.trim());
+    const cat = fields[0]?.trim();
+    const nombre = fields[1]?.trim();
+    if (cat && nombre && cat !== 'Categoría') {
+      results.push({
+        categoria: cat,
+        nombre: nombre,
+        ingredientes: fields[2]?.trim() || '',
+        preparacion: fields[3]?.trim() || '',
+        metodo: fields[4]?.trim() || '',
+        tiempo: fields[5]?.trim() || '',
+        dificultad: fields[6]?.trim() || '',
+        tip: fields[7]?.trim() || '',
+      });
+    }
+  }
+  return results;
+}
 
 export async function GET() {
   try {
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: process.env.GOOGLE_CLIENT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      },
-      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-    });
-
-    const sheets = google.sheets({ version: 'v4', auth });
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: process.env.SHEET_ID,
-      range: "'Es la que va'!A:H",
-    });
-
-    const rows = response.data.values || [];
-    const recipes = rows.slice(1)
-      .filter(row => row[0] && row[1])
-      .map(row => ({
-  categoria: row[0]?.trim() || '',
-  nombre: row[1]?.trim() || '',
-  ingredientes: row[2]?.trim() || '',
-  preparacion: row[3]?.trim() || '',
-  metodo: row[4]?.trim() || '',
-  tiempo: row[5]?.trim() || '',
-  dificultad: row[6]?.trim() || '',
-  tip: row[7]?.trim() || '',
-}));
-
+    const csvPath = path.join(process.cwd(), 'public', 'recetas.csv');
+    const text = fs.readFileSync(csvPath, 'utf-8');
+    const recipes = parseCSV(text);
+    console.log('Total recetas:', recipes.length);
     return NextResponse.json({ recipes });
   } catch (error) {
+    console.error('Error:', error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
