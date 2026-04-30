@@ -228,7 +228,7 @@ export default function Home() {
               {ings.map((ing, i) => (
                 <div key={i} onClick={() => searchByIngredient(ing)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: i < ings.length - 1 ? '1px solid #f5f5f5' : 'none', cursor: 'pointer' }}>
                   <div style={{ width: 7, height: 7, borderRadius: '50%', background: red, flexShrink: 0 }} />
-                  <span style={{ fontSize: 14, color: red, fontWeight: 600, textDecoration: 'underline' }}>{ing}</span>
+                  <span style={{ fontSize: 14, color: red, fontWeight: 600, textDecoration: 'underline' }}>{ing.charAt(0).toUpperCase() + ing.slice(1)}</span>
                   <span style={{ fontSize: 11, color: '#bbb', marginLeft: 'auto' }}>ver recetas →</span>
                 </div>
               ))}
@@ -263,8 +263,7 @@ export default function Home() {
   }
 
   return (
-    <div style={{ fontFamily: font, maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: '#f8f8f8', display: 'flex', flexDirection: 'column' }}>
-
+    <div style={{ fontFamily: font, maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: '#f8f8f8', display: 'flex', flexDirection: 'column' }}>
       {/* HEADER */}
       <div style={{ background: '#fff', padding: '16px 20px 0', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', position: 'relative' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4, position: 'relative' }}>
@@ -319,7 +318,7 @@ export default function Home() {
           <div style={{ fontSize: 12, color: '#999', marginBottom: 12, fontWeight: 500 }}>{filtered.length} recetas</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {filtered.map((r, i) => (
-              <div key={i} onClick={() => setSelected(r)} style={{ background: '#fff', borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
+              <div key={i} onClick={() => setSelected(r)} style={{ background: '#fff', borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
                 <div style={{ width: 52, height: 52, borderRadius: 14, background: redLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, flexShrink: 0 }}>🍽️</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a', marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.nombre}</div>
@@ -414,7 +413,7 @@ export default function Home() {
       )}
 
       {activeTab === 'chef' && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}>
           <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 10, background: '#f8f8f8' }}>
             {chatHistory.map((m, i) => (
               <div key={i} style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '80%', padding: '12px 16px', background: m.role === 'user' ? red : '#fff', color: m.role === 'user' ? '#fff' : '#333', borderRadius: m.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px', fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
