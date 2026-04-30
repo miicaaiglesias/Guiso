@@ -19,6 +19,7 @@ export default function Home() {
   const [chatHistory, setChatHistory] = useState([{ role: 'bot', text: '¡Hola! 👋 Soy el chef de Guiso. Conozco todas tus recetas. ¿Qué necesitás?' }]);
   const [chatInput, setChatInput] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showInstall, setShowInstall] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerFinished, setTimerFinished] = useState(false);
@@ -57,24 +58,9 @@ export default function Home() {
     return match ? parseInt(match[1]) : 0;
   }
 
-  function startTimer(mins) {
-    setTimerSeconds(mins * 60);
-    setTimerRunning(true);
-    setTimerFinished(false);
-  }
-
-  function stopTimer() {
-    setTimerRunning(false);
-    clearTimeout(timerRef.current);
-  }
-
-  function resetTimer() {
-    setTimerRunning(false);
-    setTimerSeconds(0);
-    setTimerFinished(false);
-    clearTimeout(timerRef.current);
-  }
-
+  function startTimer(mins) { setTimerSeconds(mins * 60); setTimerRunning(true); setTimerFinished(false); }
+  function stopTimer() { setTimerRunning(false); clearTimeout(timerRef.current); }
+  function resetTimer() { setTimerRunning(false); setTimerSeconds(0); setTimerFinished(false); clearTimeout(timerRef.current); }
   function formatTime(secs) {
     const m = Math.floor(secs / 60).toString().padStart(2, '0');
     const s = (secs % 60).toString().padStart(2, '0');
@@ -82,9 +68,7 @@ export default function Home() {
   }
 
   function toggleFav(nombre) {
-    const newFavs = favorites.includes(nombre)
-      ? favorites.filter(f => f !== nombre)
-      : [...favorites, nombre];
+    const newFavs = favorites.includes(nombre) ? favorites.filter(f => f !== nombre) : [...favorites, nombre];
     setFavorites(newFavs);
     localStorage.setItem('guiso_favs', JSON.stringify(newFavs));
   }
@@ -94,12 +78,7 @@ export default function Home() {
   }
 
   function searchByIngredient(ing) {
-    setSelected(null);
-    setSearch(ing);
-    setActiveCat('Todas');
-    setActiveMethod('Todos');
-    setActiveTab('explorar');
-    resetTimer();
+    setSelected(null); setSearch(ing); setActiveCat('Todas'); setActiveMethod('Todos'); setActiveTab('explorar'); resetTimer();
   }
 
   const categories = ['Todas', ...[...new Set(recipes.map(r => r.categoria))].filter(Boolean).sort()];
@@ -115,11 +94,7 @@ export default function Home() {
   const favRecipes = recipes.filter((r, i, arr) => favorites.includes(r.nombre) && arr.findIndex(x => x.nombre === r.nombre) === i);
 
   async function callAI(messages, system) {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages, system })
-    });
+    const res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages, system }) });
     const data = await res.json();
     return data.content?.[0]?.text || '';
   }
@@ -132,10 +107,7 @@ export default function Home() {
     if (!ingInput.trim() || aiLoading) return;
     setAiLoading(true); setAiResult('');
     try {
-      const text = await callAI(
-        [{ role: 'user', content: `Tengo estos ingredientes: ${ingInput}. ¿Qué puedo cocinar? Prioriza recetas del recetario.` }],
-        `Sos el chef de Guiso, app de recetas saludables. Recetario:\n${buildContext()}\nRespondé en español, de forma práctica y amigable.`
-      );
+      const text = await callAI([{ role: 'user', content: `Tengo estos ingredientes: ${ingInput}. ¿Qué puedo cocinar? Prioriza recetas del recetario.` }], `Sos el chef de Guiso, app de recetas saludables. Recetario:\n${buildContext()}\nRespondé en español, de forma práctica y amigable.`);
       setAiResult(text);
     } catch { setAiResult('Error al conectar. Intentá de nuevo.'); }
     setAiLoading(false);
@@ -160,6 +132,65 @@ export default function Home() {
   const methodIcons = { 'Horno': '🔥', 'Airfryer': '💨', 'Plancha': '♨️', 'Hervido': '🫕', 'Salteado': '🥘', 'Sin cocción': '🥗' };
   const diffColors = { 'Fácil': '#16a34a', 'Media': '#d97706', 'Alta': '#dc2626' };
 
+  // Pantalla de instalar app
+  if (showInstall) {
+    return (
+      <div style={{ fontFamily: font, maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: '#f8f8f8' }}>
+        <div style={{ background: red, padding: '20px 20px 30px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button onClick={() => setShowInstall(false)} style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
+            <h1 style={{ color: '#fff', fontSize: 18, fontWeight: 700, margin: 0 }}>📲 Instalar Guiso</h1>
+          </div>
+          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13, margin: '10px 0 0' }}>Agregá Guiso a tu pantalla de inicio y usala como una app nativa, sin pasar por el navegador.</p>
+        </div>
+
+        <div style={{ padding: '20px 16px 40px' }}>
+          {/* iOS */}
+          <div style={{ background: '#fff', borderRadius: 20, padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <span style={{ fontSize: 28 }}>🍎</span>
+              <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>iPhone / iPad</h2>
+            </div>
+            {[
+              { num: 1, icon: '🌐', text: 'Abrí guiso.vercel.app en Safari' },
+              { num: 2, icon: '⬆️', text: 'Tocá el botón de compartir (cuadrado con flecha hacia arriba)' },
+              { num: 3, icon: '➕', text: 'Tocá "Agregar a pantalla de inicio"' },
+              { num: 4, icon: '✅', text: 'Tocá "Agregar" y listo' },
+            ].map(s => (
+              <div key={s.num} style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+                <span style={{ minWidth: 24, height: 24, borderRadius: '50%', background: red, color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{s.num}</span>
+                <span style={{ fontSize: 14, color: '#444', lineHeight: 1.5 }}>{s.icon} {s.text}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Android */}
+          <div style={{ background: '#fff', borderRadius: 20, padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <span style={{ fontSize: 28 }}>🤖</span>
+              <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Android</h2>
+            </div>
+            {[
+              { num: 1, icon: '🌐', text: 'Abrí guiso.vercel.app en Chrome' },
+              { num: 2, icon: '⋮', text: 'Tocá los tres puntitos (arriba a la derecha)' },
+              { num: 3, icon: '➕', text: 'Tocá "Agregar a pantalla de inicio"' },
+              { num: 4, icon: '✅', text: 'Tocá "Agregar" y listo' },
+            ].map(s => (
+              <div key={s.num} style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+                <span style={{ minWidth: 24, height: 24, borderRadius: '50%', background: red, color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{s.num}</span>
+                <span style={{ fontSize: 14, color: '#444', lineHeight: 1.5 }}>{s.icon} {s.text}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ background: redLight, borderRadius: 16, padding: '14px 16px', borderLeft: `4px solid ${red}` }}>
+            <p style={{ fontSize: 13, color: '#555', margin: 0, lineHeight: 1.6 }}>💡 Una vez instalada, Guiso aparece en tu pantalla como cualquier app — sin barra del navegador y con pantalla completa.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (selected) {
     const ings = (selected.ingredientes || '').split(',').map(i => i.trim()).filter(Boolean);
     const isFav = favorites.includes(selected.nombre);
@@ -167,8 +198,7 @@ export default function Home() {
     const steps = (selected.preparacion || '').split(/\n|\. /).map(s => s.trim()).filter(s => s.length > 3);
 
     return (
-      <div style={{ fontFamily: font, maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: '#f8f8f8' }}>
-        {/* Hero */}
+      <div style={{ fontFamily: font, maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: '#f8f8f8' }}>
         <div style={{ background: red, padding: '20px 20px 50px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <button onClick={() => { setSelected(null); resetTimer(); }} style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
@@ -187,8 +217,6 @@ export default function Home() {
         </div>
 
         <div style={{ padding: '0 16px 100px', marginTop: -24 }}>
-
-          {/* Temporizador */}
           {mins > 0 && (
             <div style={{ background: '#fff', borderRadius: 20, padding: '16px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', marginBottom: 12, textAlign: 'center' }}>
               {timerFinished ? (
@@ -214,7 +242,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* Ingredientes */}
           {ings.length > 0 && (
             <div style={{ background: '#fff', borderRadius: 20, padding: '16px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', marginBottom: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -235,10 +262,9 @@ export default function Home() {
             </div>
           )}
 
-          {/* Preparación */}
           {selected.preparacion && (
             <div style={{ background: '#fff', borderRadius: 20, padding: '16px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', marginBottom: 12 }}>
-              <h2 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 12px' }}>👩‍🍳 Preparación</h2>
+              <h2 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 12px', color: '#1a1a1a' }}>👩‍🍳 Preparación</h2>
               {steps.length > 1 ? steps.map((step, i) => (
                 <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 10 }}>
                   <span style={{ minWidth: 24, height: 24, borderRadius: '50%', background: red, color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{i + 1}</span>
@@ -250,7 +276,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* Tip */}
           {selected.tip && (
             <div style={{ background: '#fffbeb', borderRadius: 20, padding: '16px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', marginBottom: 12, borderLeft: '4px solid #f59e0b' }}>
               <h2 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 6px', color: '#92400e' }}>💡 Tip</h2>
@@ -265,7 +290,7 @@ export default function Home() {
   return (
     <div style={{ fontFamily: font, maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: '#f8f8f8', display: 'flex', flexDirection: 'column' }}>
       {/* HEADER */}
-      <div style={{ background: '#fff', padding: '16px 20px 0', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', position: 'relative' }}>
+      <div style={{ background: '#fff', padding: '16px 20px 0', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', position: 'relative', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4, position: 'relative' }}>
           <img src="/logo.png" alt="Guiso" onClick={() => { setActiveTab('explorar'); setSearch(''); setActiveCat('Todas'); setActiveMethod('Todos'); setMenuOpen(false); }} style={{ height: 90, width: 'auto', cursor: 'pointer' }} />
           <button onClick={() => setMenuOpen(prev => !prev)} style={{ position: 'absolute', right: 0, background: 'none', border: 'none', fontSize: 28, cursor: 'pointer', color: '#1a1a1a', padding: '4px 8px' }}>☰</button>
@@ -273,15 +298,21 @@ export default function Home() {
         <div style={{ textAlign: 'center', fontSize: 11, color: '#999', marginBottom: 10 }}>{loading ? 'Cargando...' : `${recipes.length} recetas`}</div>
 
         {menuOpen && (
-          <div style={{ position: 'absolute', top: 110, right: 20, background: '#fff', borderRadius: 14, boxShadow: '0 8px 30px rgba(0,0,0,0.15)', zIndex: 100, minWidth: 200, overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 110, right: 20, background: '#fff', borderRadius: 14, boxShadow: '0 8px 30px rgba(0,0,0,0.15)', zIndex: 100, minWidth: 220, overflow: 'hidden' }}>
             <div onClick={() => { setActiveTab('favoritos'); setMenuOpen(false); }} style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14, color: '#1a1a1a', borderBottom: '1px solid #f5f5f5' }}>
               ❤️ <span>Favoritos</span>
               {favorites.length > 0 && <span style={{ marginLeft: 'auto', background: red, color: '#fff', borderRadius: 999, fontSize: 11, fontWeight: 700, padding: '2px 8px' }}>{favorites.length}</span>}
             </div>
-            <div onClick={() => { setActiveTab('lista'); setMenuOpen(false); }} style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14, color: '#1a1a1a' }}>
+            <div onClick={() => { setActiveTab('lista'); setMenuOpen(false); }} style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14, color: '#1a1a1a', borderBottom: '1px solid #f5f5f5' }}>
               🛒 <span>Lista de compras</span>
               {cart.length > 0 && <span style={{ marginLeft: 'auto', background: red, color: '#fff', borderRadius: 999, fontSize: 11, fontWeight: 700, padding: '2px 8px' }}>{cart.length}</span>}
             </div>
+            <div onClick={() => { setShowInstall(true); setMenuOpen(false); }} style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14, color: '#1a1a1a', borderBottom: '1px solid #f5f5f5' }}>
+              📲 <span>Instalar la app</span>
+            </div>
+            <a href="https://cafecito.app/guiso_app" target="_blank" rel="noopener noreferrer" style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14, color: '#1a1a1a', textDecoration: 'none' }}>
+              ☕ <span>Colaborar con Guiso</span>
+            </a>
           </div>
         )}
 
@@ -329,7 +360,7 @@ export default function Home() {
                     {r.metodo && <span style={{ fontSize: 11, color: red, background: redLight, padding: '2px 8px', borderRadius: 999 }}>{methodIcons[r.metodo] || ''} {r.metodo}</span>}
                   </div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                   <button onClick={e => { e.stopPropagation(); toggleFav(r.nombre); }} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', padding: 0 }}>{favorites.includes(r.nombre) ? '❤️' : '🤍'}</button>
                   <span style={{ color: '#ccc', fontSize: 18 }}>›</span>
                 </div>
@@ -351,16 +382,16 @@ export default function Home() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {favRecipes.map((r, i) => (
-                <div key={i} onClick={() => setSelected(r)} style={{ background: '#fff', borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
+                <div key={i} onClick={() => setSelected(r)} style={{ background: '#fff', borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
                   <div style={{ width: 52, height: 52, borderRadius: 14, background: redLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, flexShrink: 0 }}>🍽️</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a', marginBottom: 4 }}>{r.nombre}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a', marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.nombre}</div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       <span style={{ fontSize: 11, color: '#888', background: '#f5f5f5', padding: '2px 8px', borderRadius: 999 }}>{r.categoria}</span>
                       {r.tiempo && <span style={{ fontSize: 11, color: '#888', background: '#f5f5f5', padding: '2px 8px', borderRadius: 999 }}>⏱️ {r.tiempo}</span>}
                     </div>
                   </div>
-                  <button onClick={e => { e.stopPropagation(); toggleFav(r.nombre); }} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}>❤️</button>
+                  <button onClick={e => { e.stopPropagation(); toggleFav(r.nombre); }} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', flexShrink: 0 }}>❤️</button>
                 </div>
               ))}
             </div>
@@ -423,10 +454,10 @@ export default function Home() {
             {aiLoading && <div style={{ alignSelf: 'flex-start', padding: '12px 16px', background: '#fff', borderRadius: '18px 18px 18px 4px', fontSize: 14, color: '#999', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>...</div>}
             <div ref={chatEndRef} />
           </div>
-          <div style={{ padding: '12px 20px 20px', background: '#fff', boxShadow: '0 -2px 10px rgba(0,0,0,0.06)' }}>
+          <div style={{ padding: '12px 20px 20px', background: '#fff', boxShadow: '0 -2px 10px rgba(0,0,0,0.06)', flexShrink: 0 }}>
             <div style={{ display: 'flex', gap: 10 }}>
               <input value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendChat()} placeholder="Preguntá al chef..." style={{ flex: 1, height: 46, padding: '0 16px', border: 'none', borderRadius: 14, background: '#f5f5f5', color: '#1a1a1a', fontSize: 14, fontFamily: font, outline: 'none' }} />
-              <button onClick={sendChat} disabled={aiLoading || !chatInput.trim()} style={{ width: 46, height: 46, borderRadius: 14, background: aiLoading ? '#f0c4c0' : red, border: 'none', color: '#fff', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
+              <button onClick={sendChat} disabled={aiLoading || !chatInput.trim()} style={{ width: 46, height: 46, borderRadius: 14, background: aiLoading ? '#f0c4c0' : red, border: 'none', color: '#fff', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>›</button>
             </div>
           </div>
         </div>
